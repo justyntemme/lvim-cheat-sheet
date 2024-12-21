@@ -30,7 +30,6 @@ jobs:
 
       - name: Append issue body to README.md
         run: |
-          echo "\n## Issue: ${{ github.event.issue.title }}" >> README.md
           echo "${{ github.event.issue.body }}" >> README.md
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
