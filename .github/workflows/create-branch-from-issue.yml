@@ -1,4 +1,4 @@
-name: Create Branch From Issue with [Automated]
+name: Update README with Issue Body
 
 on:
   issues:
@@ -6,7 +6,7 @@ on:
       - opened
 
 jobs:
-  create_branch:
+  update_readme:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,19 +25,15 @@ jobs:
       - name: Stop if not an [Automated] issue
         if: steps.title_check.outputs.is_automated == 'false'
         run: |
-          echo "Issue title does not start with [Automated]. Skipping branch creation."
+          echo "Issue title does not start with [Automated]. Skipping update."
           exit 0
 
-      - name: Extract issue details
-        id: issue_details
+      - name: Append issue body to README.md
         run: |
-          ISSUE_NUMBER=${{ github.event.issue.number }}
-          ISSUE_TITLE="${{ github.event.issue.title }}"
-          SAFE_BRANCH_NAME=$(echo "issue-${ISSUE_NUMBER}-${ISSUE_TITLE}" | tr -cs '[:alnum:]' '-' | tr '[:upper:]' '[:lower:]')
-          echo "branch_name=${SAFE_BRANCH_NAME}" >> $GITHUB_OUTPUT
-
-      - name: Create a new branch
-        run: |
-          git fetch --all
-          git checkout -b ${{ steps.issue_details.outputs.branch_name }}
-          git push origin ${{ steps.issue_details.outputs.branch_name }}
+          echo "\n## Issue: ${{ github.event.issue.title }}" >> README.md
+          echo "${{ github.event.issue.body }}" >> README.md
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add README.md
+          git commit -m "Update README.md with issue body from #${{ github.event.issue.number }}"
+          git push origin main
