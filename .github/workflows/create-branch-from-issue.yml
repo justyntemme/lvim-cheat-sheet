@@ -29,8 +29,10 @@ jobs:
           exit 0
 
       - name: Append issue body to README.md
+        env:
+          TEXT: ${{ github.event.issue.body }}
         run: |
-          echo "${{ github.event.issue.body }}" >> README.md
+          echo "${TEXT}" >> README.md
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add README.md
