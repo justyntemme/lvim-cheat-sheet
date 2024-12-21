@@ -1,0 +1,43 @@
+name: Create Branch From Issue with [Automated]
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  create_branch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      - name: Check if issue title starts with [Automated]
+        id: title_check
+        run: |
+          if [[ "${{ github.event.issue.title }}" == "[Automated]"* ]]; then
+            echo "is_automated=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_automated=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Stop if not an [Automated] issue
+        if: steps.title_check.outputs.is_automated == 'false'
+        run: |
+          echo "Issue title does not start with [Automated]. Skipping branch creation."
+          exit 0
+
+      - name: Extract issue details
+        id: issue_details
+        run: |
+          ISSUE_NUMBER=${{ github.event.issue.number }}
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          SAFE_BRANCH_NAME=$(echo "issue-${ISSUE_NUMBER}-${ISSUE_TITLE}" | tr -cs '[:alnum:]' '-' | tr '[:upper:]' '[:lower:]')
+          echo "branch_name=${SAFE_BRANCH_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Create a new branch
+        run: |
+          git fetch --all
+          git checkout -b ${{ steps.issue_details.outputs.branch_name }}
+          git push origin ${{ steps.issue_details.outputs.branch_name }}
