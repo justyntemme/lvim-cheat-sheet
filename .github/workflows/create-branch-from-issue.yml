@@ -13,6 +13,21 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v3
 
+      - name: Check if issue creator is justyntemme@gmail.com
+        id: creator_check
+        run: |
+          if [[ "${{ github.actor }}" == "justyntemme" ]]; then
+            echo "is_authorized=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_authorized=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Stop if issue creator is not authorized
+        if: steps.creator_check.outputs.is_authorized == 'false'
+        run: |
+          echo "Issue creator is not authorized. Skipping update."
+          exit 0
+
       - name: Check if issue title starts with [Automated]
         id: title_check
         run: |
